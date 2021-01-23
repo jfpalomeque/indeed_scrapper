@@ -6,6 +6,10 @@ import bs4
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
+import streamlit as st
+from geopy import Nominatim
+
+import numpy as np
 
 
 def scrapper(title, location = "United Kingdom"):
@@ -59,9 +63,9 @@ def scrapper(title, location = "United Kingdom"):
             ad.append(company)
             
             try:
-                rating = posts[i].find_all(name="span", attrs={"class":"ratingsDisplay"})[0].text.strip()
+                rating = float(posts[i].find_all(name="span", attrs={"class":"ratingsDisplay"})[0].text.strip())
             except:
-                rating = "Nan" 
+                rating = "NaN" 
                 
             ad.append(rating)
             
@@ -69,7 +73,7 @@ def scrapper(title, location = "United Kingdom"):
             try:
                 location = posts[i].find_all(name="span", attrs={"class":"location accessible-contrast-color-location"})[0].text.strip()
             except:
-                location = "Nan"
+                location = "NaN"
                 
             
             ad.append(location)
@@ -117,8 +121,41 @@ def scrapper(title, location = "United Kingdom"):
         print(len(all_adverts))
         time.sleep(1)
 
-    return n_ads, all_adverts
+    return all_adverts
 
 
-test = scrapper("Data Science")
+st.title("Write here the job title to search")
+title_inoput = st.text_input("Job title", "Data Science")
+
+test = scrapper("title_input")
+
+df = pd.DataFrame(test)
+df.drop_duplicates()
+df.columns = ["job_Title", "company", "rating", "location", "remote","ad_url"]
+
+
+n_ads_found = len(df-1)
+df["rating"] = pd.to_numeric(df["rating"], errors="coerce")
+avg_rate = df["rating"].mean()
+location_freq = df.location.value_counts()
+
+
+geolocator = Nominatim(user_agent="indeed_scrapper")
+
+location_coords = []
+for line in df.location:
+    loc_row = []
+    location = geolocator.geocode(line)
+    loc_row.append(line)
+    loc_row.append(location.latitude)
+    loc_row.append(location.longitude)
+    location_coords.append(loc_row)
+    print (location.latitude, location.longitude)
+    time.sleep(1)
+
+location_coords = pd.DataFrame(location_coords)
+
+
+
+    
 
