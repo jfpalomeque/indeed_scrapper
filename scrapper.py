@@ -41,7 +41,10 @@ def scrapper(title, location = "United Kingdom"):
     def extract_n_ads(soup):
         #Extract the total number of add in the search
         n_ads_soup = soup.find("div", {"id":"searchCountPages"}) 
-        n_ads = int(str(n_ads_soup)[str(n_ads_soup).find("of")+2:str(n_ads_soup).find("jobs")])
+        try:
+            n_ads = int(str(n_ads_soup)[str(n_ads_soup).find("of")+2:str(n_ads_soup).find("jobs")])
+        except:
+            st.write("Error!")
         return n_ads
 
 
@@ -124,38 +127,61 @@ def scrapper(title, location = "United Kingdom"):
     return all_adverts
 
 
-st.title("Write here the job title to search")
-title_inoput = st.text_input("Job title", "Data Science")
+st.title("Welcome to the indeed.co.uk crapper")
+if st.button("See Readme"):
+    st.write("""This is an scrapper for Indeed.co.uk, the job ads website. This project has three parts, an advance webscrapper, a little exploratory analysis of those ads and a 
+    visualization tool using streamlite. Although sleepers where added in order to avoid IP ban by the website, some times the connection was blocked. 
+    I recomend use an VPN anc change server, or a similar solution, if it's going to be tried more than once in a short time period.
+    The city name to coordinates translation is really slow too, making that the map take ages in appear, depending of the number of ads. Code in https://github.com/jfpalomeque/indeed_scrapper""")
 
-test = scrapper("title_input")
+st.write("## Write here the job title to search in Indeed.co.uk")
+title_input = st.text_input("Job title", "Data Science")
 
-df = pd.DataFrame(test)
-df.drop_duplicates()
-df.columns = ["job_Title", "company", "rating", "location", "remote","ad_url"]
-
-
-n_ads_found = len(df-1)
-df["rating"] = pd.to_numeric(df["rating"], errors="coerce")
-avg_rate = df["rating"].mean()
-location_freq = df.location.value_counts()
-
-
-geolocator = Nominatim(user_agent="indeed_scrapper")
-
-location_coords = []
-for line in df.location:
-    loc_row = []
-    location = geolocator.geocode(line)
-    loc_row.append(line)
-    loc_row.append(location.latitude)
-    loc_row.append(location.longitude)
-    location_coords.append(loc_row)
-    print (location.latitude, location.longitude)
-    time.sleep(1)
-
-location_coords = pd.DataFrame(location_coords)
+if st.button("Run!"):
 
 
 
+    test = scrapper(title_input)
+
+    df = pd.DataFrame(test)
+    df.drop_duplicates()
+    df.columns = ["job_Title", "company", "rating", "location", "remote","ad_url"]
+    
+    n_ads_found = len(df)-1
+    df["rating"] = pd.to_numeric(df["rating"], errors="coerce")
+    avg_rate = df["rating"].mean()
+    location_freq = df.location.value_counts()
+    
+
+    st.write("The total number of ads scrapped for " + title_input + " jobs is " + str(n_ads_found))
+    st.write("The average rating over 5 of ads scrapped for " + title_input + " jobs is " + str(avg_rate))
+    st.write("The locations of ads scrapped for " + title_input + " jobs are ")
+    st.write(location_freq)
+
+
+    st.write("Ads DataFrame")
+    st.write(df)
+
+
+
+    st.write("Map / Please wait, coords process can take a while!!")    
+    geolocator = Nominatim(user_agent="indeed_scrapper")
+
+    location_coords = []
+    for line in df.location:
+        loc_row = []
+        location = geolocator.geocode(line)
+        loc_row.append(line)
+        loc_row.append(location.latitude)
+        loc_row.append(location.longitude)
+        location_coords.append(loc_row)
+        print (location.latitude, location.longitude)
+        time.sleep(1)
+
+    location_coords = pd.DataFrame(location_coords)
+    location_coords.columns = ["location", "latitude", "longitude"]
+    st.map(location_coords)
+
+    
     
 
