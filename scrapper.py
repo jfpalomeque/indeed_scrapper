@@ -5,8 +5,8 @@ import requests
 import bs4
 try:
     from bs4 import BeautifulSoup
-
-from bs4 import BeautifulSoup 
+except :
+    from BeautifulSoup import BeautifulSoup 
 import pandas as pd
 import time
 import streamlit as st
