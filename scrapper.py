@@ -2,7 +2,7 @@
 #Inspired in article https://medium.com/@msalmon00/web-scraping-job-postings-from-indeed-96bd588dcb4b
 
 import requests
-import bs4
+
 try:
     from bs4 import BeautifulSoup
 except :
