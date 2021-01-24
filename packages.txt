@@ -1,0 +1,5 @@
+requests-dev
+bs4-dev
+pandas-dev
+geopy-dev
+numpy-dev
